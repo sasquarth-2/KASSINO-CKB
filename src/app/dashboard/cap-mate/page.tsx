@@ -390,9 +390,9 @@ export default function CapMateGame() {
             {gameState === "lost" && (
               <div style={{ ...styles.overlayScreen, background: "rgba(20, 5, 5, 0.9)" }} className="glass-panel">
                 <AlertTriangle size={48} color="#ef5350" />
-                <h2 style={{ fontSize: "2.2rem", margin: "10px 0", color: "#ef5350" }}>EXPLODIU!</h2>
+                <h2 style={{ fontSize: "2.2rem", margin: "10px 0", color: "#ef5350" }}>ÁGUA COM MATO!</h2>
                 <p style={{ color: "var(--text-muted)", fontSize: "1rem", margin: "0 0 20px 0" }}>
-                  Você encontrou 2 Capitães do Mate e perdeu a aposta.
+                  O captão do Mate te viu, você perdeu
                 </p>
                 <button className="btn-primary" style={{ background: "#ef5350", borderColor: "#d32f2f" }} onClick={handleStartGame}>
                   TENTAR NOVAMENTE
