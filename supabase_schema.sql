@@ -153,10 +153,13 @@ create table if not exists public.active_crash_round (
 );
 
 -- Insert initial row if not exists
--- Insert initial row if not exists
 insert into public.active_crash_round (id, status, betting_start_time, crash_point)
 values (1, 'betting', now(), 1.50)
 on conflict (id) do nothing;
+
+-- Enable RLS for active_crash_round (no select policies to prevent client-side sniffing)
+alter table public.active_crash_round enable row level security;
+drop policy if exists "Allow authenticated users to read active crash round" on public.active_crash_round;
 
 -- 6. Completed Crash Rounds History Table (Leak-proof history feed)
 create table if not exists public.crash_rounds_history (
@@ -193,15 +196,9 @@ insert into public.active_dengue_round (id, status, betting_start_time)
 values (1, 'betting', now())
 on conflict (id) do nothing;
 
--- Enable RLS for active_dengue_round
+-- Enable RLS for active_dengue_round (no select policies to prevent client-side sniffing)
 alter table public.active_dengue_round enable row level security;
-
 drop policy if exists "Allow authenticated users to read active dengue round" on public.active_dengue_round;
-create policy "Allow authenticated users to read active dengue round"
-  on public.active_dengue_round
-  for select
-  to authenticated
-  using (true);
 
 create table if not exists public.dengue_bets (
   id uuid primary key default gen_random_uuid(),
