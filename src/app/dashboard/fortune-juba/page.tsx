@@ -1080,7 +1080,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   slotShell: {
     width: "100%",
-    maxWidth: "480px",
+    maxWidth: "620px",
     padding: "24px",
     borderColor: "rgba(255, 215, 0, 0.45)",
     background: "linear-gradient(180deg, rgba(80,10,10,0.85) 0%, rgba(30,5,5,0.9) 100%)",
