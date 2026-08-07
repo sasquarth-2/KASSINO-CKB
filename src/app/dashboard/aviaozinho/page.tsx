@@ -262,6 +262,18 @@ export default function Aviaozinho() {
         setCurrentMultiplier(parseFloat(mult.toFixed(2)));
       } else if (data.status === "crashed") {
         setCurrentMultiplier(data.crashPoint);
+        // Resolve simulated friends' bets all at once
+        setFriendBets(prev => 
+          prev.map(bet => {
+            if (bet.status === "betting" || bet.status === "waiting") {
+              if (bet.cashoutMultiplier && bet.cashoutMultiplier <= data.crashPoint) {
+                return { ...bet, status: "cashed_out" };
+              }
+              return { ...bet, status: "crashed" };
+            }
+            return bet;
+          })
+        );
       }
     } catch (err) {
       console.error("Failed to sync global round state:", err);
@@ -446,28 +458,24 @@ export default function Aviaozinho() {
       const multVal = parseFloat((1.00 + Math.pow(elapsedSec / 8, 2.2)).toFixed(2));
       setCurrentMultiplier(multVal);
 
-      // Update simulated friends status in real-time
-      setFriendBets(prevBets => 
-        prevBets.map(bet => {
-          if (bet.status === "betting" && bet.cashoutMultiplier && multVal >= bet.cashoutMultiplier) {
-            // Friend cashes out!
-            if (bet.cashoutMultiplier <= crashPoint) {
-              return { ...bet, status: "cashed_out" };
-            }
-          }
-          if (multVal >= crashPoint && bet.status === "betting") {
-            // Friend crashed
-            return { ...bet, status: "crashed" };
-          }
-          return bet;
-        })
-      );
-
       if (multVal >= crashPoint) {
         // Plane crashed!
         setGameStatus("crashed");
         gameAudio.playStop(0.85); // crash explosion sound
         
+        // Resolve simulated friends' bets all at once!
+        setFriendBets(prevBets => 
+          prevBets.map(bet => {
+            if (bet.status === "betting" || bet.status === "waiting") {
+              if (bet.cashoutMultiplier && bet.cashoutMultiplier <= crashPoint) {
+                return { ...bet, status: "cashed_out" };
+              }
+              return { ...bet, status: "crashed" };
+            }
+            return bet;
+          })
+        );
+
         // If user was betting and didn't cashout, they lost
         if (hasBet && !isCashedOut) {
           setHasBet(false);
