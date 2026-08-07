@@ -339,9 +339,9 @@ export default function Lobby() {
                 <button 
                   onClick={() => router.push("/dashboard/cap-mate")}
                   className="btn-primary" 
-                  style={{ width: "100%", marginTop: "auto", background: "linear-gradient(135deg, #1b4d22 0%, #0d2a13 100%)", borderColor: "#2e7d32" }}
+                  style={{ width: "100%", marginTop: "auto" }}
                 >
-                  <Play size={16} fill="currentColor" /> JOGAR MATE
+                  <Play size={16} fill="currentColor" /> Jogar Cap. do Mate
                 </button>
               </div>
             </div>
