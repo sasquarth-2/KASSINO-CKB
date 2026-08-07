@@ -153,11 +153,32 @@ create table if not exists public.active_crash_round (
 );
 
 -- Insert initial row if not exists
+-- Insert initial row if not exists
 insert into public.active_crash_round (id, status, betting_start_time, crash_point)
 values (1, 'betting', now(), 1.50)
 on conflict (id) do nothing;
+
+-- 6. Completed Crash Rounds History Table (Leak-proof history feed)
+create table if not exists public.crash_rounds_history (
+  id uuid primary key default gen_random_uuid(),
+  round_id uuid not null unique,
+  crash_point numeric not null,
+  created_at timestamp with time zone not null default now()
+);
+
+-- Enable RLS for crash_rounds_history
+alter table public.crash_rounds_history enable row level security;
+
+-- Allow authenticated users to read the history
+drop policy if exists "Allow authenticated users to read crash history" on public.crash_rounds_history;
+create policy "Allow authenticated users to read crash history"
+  on public.crash_rounds_history
+  for select
+  to authenticated
+  using (true);
 
 -- Create Indexes for performance
 create index if not exists profiles_balance_idx on public.profiles (balance desc);
 create index if not exists spins_user_id_idx on public.spins (user_id);
 create index if not exists spins_created_at_idx on public.spins (created_at desc);
+create index if not exists crash_rounds_history_created_at_idx on public.crash_rounds_history (created_at desc);

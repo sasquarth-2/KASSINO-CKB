@@ -146,28 +146,21 @@ export default function Aviaozinho() {
     planeImageRef.current = img;
   }, []);
 
-  // Fetch recent crash rounds from spins table
+  // Fetch recent crash rounds from crash_rounds_history table
   const fetchCrashHistory = useCallback(async () => {
     try {
       const { data } = await supabase
-        .from("spins")
-        .select("id, multiplier, symbols")
+        .from("crash_rounds_history")
+        .select("id, round_id, crash_point, created_at")
         .order("created_at", { ascending: false })
-        .limit(30);
+        .limit(10);
 
       if (data) {
-        // Filter rows that are crash games
-        const crashGames = data
-          .filter(s => Array.isArray(s.symbols) && s.symbols[0] === "crash")
-          .map(s => ({
-            id: s.id,
-            // The crash point is stored as the third element of symbols
-            crashedAt: parseFloat(s.symbols[2] || "0"),
-            // User cashout multiplier (or 0 if crashed)
-            multiplier: parseFloat(s.multiplier.toString())
-          }))
-          .slice(0, 10);
-        
+        const crashGames = data.map(r => ({
+          id: r.id,
+          crashedAt: parseFloat(r.crash_point.toString()),
+          multiplier: 0
+        }));
         setRecentMultipliers(crashGames);
       }
     } catch (err) {

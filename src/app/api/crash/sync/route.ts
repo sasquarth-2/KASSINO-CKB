@@ -115,6 +115,15 @@ export async function GET(req: NextRequest) {
       if (updateError) {
         console.error("Failed to transition active round state:", updateError.message);
       }
+
+      // Log the completed round in public history table at the exact crash moment
+      if (currentStatus === "crashed") {
+        await supabaseAdmin.from("crash_rounds_history").insert({
+          round_id: roundId,
+          crash_point: crashPoint,
+          created_at: new Date(updatedAt).toISOString()
+        });
+      }
     }
 
     // 4. Return synchronized values including exact server timestamp to align animations
