@@ -1080,7 +1080,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   slotShell: {
     width: "100%",
-    maxWidth: "620px",
+    maxWidth: "480px",
     padding: "24px",
     borderColor: "rgba(255, 215, 0, 0.45)",
     background: "linear-gradient(180deg, rgba(80,10,10,0.85) 0%, rgba(30,5,5,0.9) 100%)",
@@ -1156,13 +1156,13 @@ const styles: Record<string, React.CSSProperties> = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    padding: "8px",
+    padding: "2px",
     background: "rgba(20, 5, 5, 0.4)",
     borderBottom: "1px solid rgba(255, 215, 0, 0.05)",
   },
   symbolImg: {
-    width: "80%",
-    height: "80%",
+    width: "95%",
+    height: "95%",
     objectFit: "contain",
   },
   statPanel: {
