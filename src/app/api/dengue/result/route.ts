@@ -2,6 +2,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase, getSupabaseAdmin } from "@/lib/supabase-client";
 
+const CARD_MULTIPLIERS: Record<string, number> = {
+  dengue: 10.0,
+  cigaro: 8.0,
+  frango: 5.0,
+  "cap-mate": 4.0,
+  sapo: 3.0
+};
+
 export async function POST(req: NextRequest) {
   try {
     // 1. Authenticate user
@@ -69,7 +77,7 @@ export async function POST(req: NextRequest) {
         .eq("id", user.id)
         .single();
       
-      const multiplier = bet.selected_card === "dengue" ? 10.0 : 4.0;
+      const multiplier = CARD_MULTIPLIERS[bet.selected_card] || 4.0;
       return NextResponse.json({
         won: bet.status === "won",
         hasBet: true,
@@ -82,7 +90,7 @@ export async function POST(req: NextRequest) {
 
     // 6. Evaluate result
     const didWin = bet.selected_card === winningCard;
-    const multiplier = winningCard === "dengue" ? 10.0 : 4.0;
+    const multiplier = CARD_MULTIPLIERS[winningCard] || 4.0;
     const winAmount = parseFloat((bet.bet_amount * multiplier).toFixed(2));
 
     // Fetch profile info

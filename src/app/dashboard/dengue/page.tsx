@@ -413,7 +413,7 @@ export default function DengueGame() {
                     >
                       <img src={`/images/${c.id}.png`} alt={c.id} style={styles.cardSelectIcon} />
                       <span style={{ fontSize: "0.65rem", color: isChosen ? "var(--bright-gold)" : "var(--text-muted)" }}>
-                        {c.id === "dengue" ? "10x" : "4x"}
+                        {c.multiplier}x
                       </span>
                     </button>
                   );
@@ -478,20 +478,20 @@ export default function DengueGame() {
           <div style={styles.sidebarPanel} className="glass-panel">
             <h3 className="gold-text" style={{ fontSize: "1.1rem", margin: "0 0 16px 0" }}>Tabela de Pagamentos</h3>
             <div style={styles.payoutList}>
-              <div style={styles.payoutRow}>
-                <div style={styles.payoutLeft}>
-                  <img src="/images/dengue.png" alt="Dengue" style={styles.payoutIcon} />
-                  <span>Dengue</span>
-                </div>
-                <span className="gold-text" style={{ fontWeight: "900" }}>10x Payout</span>
-              </div>
-              {["cigaro", "frango", "cap-mate", "sapo"].map(item => (
-                <div key={item} style={styles.payoutRow}>
+              {CARDS_POOL.map(c => (
+                <div key={c.id} style={styles.payoutRow}>
                   <div style={styles.payoutLeft}>
-                    <img src={`/images/${item}.png`} alt={item} style={styles.payoutIcon} />
-                    <span style={{ textTransform: "capitalize" }}>{item === "cap-mate" ? "Cap. Mate" : item}</span>
+                    <img src={`/images/${c.id}.png`} alt={c.id} style={styles.payoutIcon} />
+                    <span style={{ textTransform: "capitalize" }}>
+                      {c.id === "cap-mate" ? "Cap. Mate" : (c.id === "cigaro" ? "Cigaro" : c.id)}
+                    </span>
                   </div>
-                  <span style={{ color: "var(--text-muted)", fontWeight: "700" }}>4x Payout</span>
+                  <span style={{ 
+                    color: c.id === "dengue" ? "var(--bright-gold)" : "var(--text-muted)", 
+                    fontWeight: "900" 
+                  }}>
+                    {c.multiplier}x Payout
+                  </span>
                 </div>
               ))}
             </div>
