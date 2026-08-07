@@ -145,12 +145,14 @@ export function calculateWins(grid: string[][], betAmount: number): { winLines: 
   if (isFull && totalWin > 0) {
     isFullGridWin = true;
     totalWin = totalWin * 10;
-    totalMultiplier = totalMultiplier * 10;
   }
+
+  // Calculate actual overall multiplier relative to the total bet amount
+  const overallMultiplier = betAmount > 0 ? parseFloat((totalWin / betAmount).toFixed(1)) : 0;
 
   return {
     winLines,
-    totalMultiplier,
+    totalMultiplier: overallMultiplier,
     totalWin: parseFloat(totalWin.toFixed(2)),
     isFullGridWin,
   };
