@@ -397,7 +397,10 @@ export default function Dashboard() {
   // Decrement auto spins and trigger next one if active
   const handleAutoSpinsDecrement = () => {
     if (autoSpinsRef.current > 0) {
-      setAutoSpins(prev => prev - 1);
+      // If it is set to infinite (99999), do not decrement it.
+      if (autoSpinsRef.current < 99999) {
+        setAutoSpins(prev => prev - 1);
+      }
       setTimeout(() => {
         if (autoSpinsRef.current > 0) {
           triggerSpin();
@@ -739,9 +742,16 @@ export default function Dashboard() {
                       color: autoSpins > 0 ? "#300" : "var(--text-muted)",
                       borderColor: autoSpins > 0 ? "var(--bright-gold)" : "rgba(255,255,255,0.1)"
                     }}
-                    onClick={() => setAutoSpins(prev => prev > 0 ? 0 : 10)}
+                    onClick={() => setAutoSpins(prev => {
+                      if (prev === 0) return 10;
+                      if (prev === 10) return 30;
+                      if (prev === 30) return 50;
+                      if (prev === 50) return 100;
+                      if (prev === 100) return 99999; // 99999 represents infinite (∞)
+                      return 0; // Turn off
+                    })}
                   >
-                    AUTO {autoSpins > 0 && `(${autoSpins})`}
+                    {autoSpins === 99999 ? "AUTO (∞)" : autoSpins > 0 ? `AUTO (${autoSpins})` : "AUTO"}
                   </button>
                 </div>
               </div>
