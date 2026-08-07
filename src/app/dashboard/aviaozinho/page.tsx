@@ -80,6 +80,12 @@ export default function Aviaozinho() {
   const [isQueuedBet, setIsQueuedBet] = useState<boolean>(false);
   const [queuedBetAmount, setQueuedBetAmount] = useState<number>(0);
 
+  // Global Synchronization States
+  const [activeRoundId, setActiveRoundId] = useState<string>("");
+  const [betRoundId, setBetRoundId] = useState<string>("");
+  const [flightStartTime, setFlightStartTime] = useState<number | null>(null);
+  const [serverTimeOffset, setServerTimeOffset] = useState<number>(0);
+
   // Canvas Reference
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const planeImageRef = useRef<HTMLImageElement | null>(null);
@@ -117,6 +123,7 @@ export default function Aviaozinho() {
         setCrashPoint(data.crashPoint);
         setBetTimestamp(data.timestamp);
         setBetSignature(data.signature);
+        setBetRoundId(data.roundId); // Tie bet to this roundId
         setIsCashedOut(false);
         setWonAmount(0);
 
@@ -229,21 +236,59 @@ export default function Aviaozinho() {
     }
   }, []);
 
-  // 1. Initial Load & Polling
+  // 1. Initial Load & Polling (Global Synchronization Engine)
+  const fetchGlobalSync = useCallback(async () => {
+    try {
+      const res = await fetch("/api/crash/sync");
+      if (!res.ok) return;
+      const data = await res.json();
+
+      const localNow = Date.now();
+      const offset = data.serverTime - localNow;
+      
+      setServerTimeOffset(offset);
+      setActiveRoundId(data.roundId);
+      setGameStatus(data.status);
+      setCrashPoint(data.crashPoint);
+      setFlightStartTime(data.flightStartTime);
+
+      if (data.status === "betting") {
+        const elapsed = (localNow + offset) - data.bettingStartTime;
+        const timeLeft = Math.max(0, 8.0 - elapsed / 1000);
+        setCountdown(parseFloat(timeLeft.toFixed(1)));
+      } else if (data.status === "flying") {
+        const elapsed = (localNow + offset) - data.flightStartTime;
+        const mult = 1.00 + Math.pow(Math.max(0, elapsed / 1000) / 8, 2.2);
+        setCurrentMultiplier(parseFloat(mult.toFixed(2)));
+      } else if (data.status === "crashed") {
+        setCurrentMultiplier(data.crashPoint);
+      }
+    } catch (err) {
+      console.error("Failed to sync global round state:", err);
+    }
+  }, []);
+
   useEffect(() => {
     const init = async () => {
       await fetchProfileData();
       await fetchSocialData();
       await fetchCrashHistory();
+      await fetchGlobalSync();
     };
     init();
+
+    // Poll global sync machine every 1.5 seconds for lag correction
+    const syncInterval = setInterval(fetchGlobalSync, 1500);
 
     const interval = setInterval(() => {
       fetchSocialData();
     }, 8000);
 
-    return () => clearInterval(interval);
-  }, [fetchProfileData, fetchSocialData, fetchCrashHistory]);
+    return () => {
+      clearInterval(syncInterval);
+      clearInterval(interval);
+    };
+  }, [fetchProfileData, fetchSocialData, fetchCrashHistory, fetchGlobalSync]);
 
   // Daily claim
   const handleClaimReward = async () => {
@@ -341,7 +386,7 @@ export default function Aviaozinho() {
   // 🎮 CRASH GAME STATE MACHINE LOOP
   // ==========================================================================
   
-  // 1. Betting Phase timer countdown
+  // 1. Betting Phase local timer tick down
   useEffect(() => {
     if (gameStatus !== "betting") return;
 
@@ -380,50 +425,37 @@ export default function Aviaozinho() {
     simulateFriendsBets();
 
     const interval = setInterval(() => {
-      setCountdown(prev => {
-        if (prev <= 0.1) {
-          clearInterval(interval);
-          // Transition to flight phase
-          setGameStatus("flying");
-          return 0;
-        }
-        return parseFloat((prev - 0.1).toFixed(1));
-      });
+      setCountdown(prev => Math.max(0, parseFloat((prev - 0.1).toFixed(1))));
     }, 100);
 
     return () => clearInterval(interval);
-  }, [gameStatus, leaderboard]);
+  }, [gameStatus, leaderboard, isQueuedBet, queuedBetAmount, placeBetApi]);
 
-  // 2. Flight Phase game ticks
+  // 2. Flight Phase local game ticks (Server-Synced)
   useEffect(() => {
-    if (gameStatus !== "flying") return;
+    if (gameStatus !== "flying" || !flightStartTime) return;
 
     // Start plane engine sound
     gameAudio.playSpin(); 
 
-    const startTime = Date.now();
-    
     const tick = () => {
-      const elapsedSec = (Date.now() - startTime) / 1000;
+      const elapsedMs = (Date.now() + serverTimeOffset) - flightStartTime;
+      const elapsedSec = Math.max(0, elapsedMs / 1000);
       
       // Multiplier grows exponentially over time
       const multVal = parseFloat((1.00 + Math.pow(elapsedSec / 8, 2.2)).toFixed(2));
       setCurrentMultiplier(multVal);
 
-      // Check if plane crashed for the player
-      // If user has an active bet, we stop when they hit the crashPoint
-      const currentLimit = hasBet ? crashPoint : 10.0 + Math.random() * 15.0; // decorative end if no bet
-      
       // Update simulated friends status in real-time
       setFriendBets(prevBets => 
         prevBets.map(bet => {
           if (bet.status === "betting" && bet.cashoutMultiplier && multVal >= bet.cashoutMultiplier) {
             // Friend cashes out!
-            if (bet.cashoutMultiplier <= currentLimit) {
+            if (bet.cashoutMultiplier <= crashPoint) {
               return { ...bet, status: "cashed_out" };
             }
           }
-          if (multVal >= currentLimit && bet.status === "betting") {
+          if (multVal >= crashPoint && bet.status === "betting") {
             // Friend crashed
             return { ...bet, status: "crashed" };
           }
@@ -431,7 +463,7 @@ export default function Aviaozinho() {
         })
       );
 
-      if (multVal >= currentLimit) {
+      if (multVal >= crashPoint) {
         // Plane crashed!
         setGameStatus("crashed");
         gameAudio.playStop(0.85); // crash explosion sound
@@ -443,15 +475,9 @@ export default function Aviaozinho() {
         
         // Add to history list
         setRecentMultipliers(prev => [
-          { id: Math.random().toString(), multiplier: 0, crashedAt: currentLimit },
+          { id: Math.random().toString(), multiplier: 0, crashedAt: crashPoint },
           ...prev.slice(0, 9)
         ]);
-
-        // Start countdown to next round after 3 seconds
-        setTimeout(() => {
-          setCountdown(8.0);
-          setGameStatus("betting");
-        }, 3000);
 
         return;
       }
@@ -464,7 +490,7 @@ export default function Aviaozinho() {
     return () => {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
     };
-  }, [gameStatus, hasBet, crashPoint, isCashedOut]);
+  }, [gameStatus, flightStartTime, crashPoint, serverTimeOffset, hasBet, isCashedOut]);
 
   // ==========================================================================
   // 🎨 CANVAS ANIMATION RENDERING LOOP
@@ -694,6 +720,7 @@ export default function Aviaozinho() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
+          roundId: betRoundId, // Send locked roundId
           betAmount: activeBetAmount,
           cashoutMultiplier: cashoutVal,
           crashPoint: crashPoint,

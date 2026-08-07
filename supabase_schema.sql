@@ -141,6 +141,22 @@ create trigger check_profile_update_trigger
   before update on public.profiles
   for each row execute procedure public.check_profile_update();
 
+-- 5. Active Crash Round Table (Multiplayer synchronization with near-zero database load)
+create table if not exists public.active_crash_round (
+  id int primary key default 1 check (id = 1),
+  round_id uuid not null default gen_random_uuid(),
+  status text not null default 'betting', -- 'betting', 'flying', 'crashed'
+  betting_start_time timestamp with time zone not null default now(),
+  flight_start_time timestamp with time zone,
+  crash_point numeric not null default 1.50,
+  updated_at timestamp with time zone not null default now()
+);
+
+-- Insert initial row if not exists
+insert into public.active_crash_round (id, status, betting_start_time, crash_point)
+values (1, 'betting', now(), 1.50)
+on conflict (id) do nothing;
+
 -- Create Indexes for performance
 create index if not exists profiles_balance_idx on public.profiles (balance desc);
 create index if not exists spins_user_id_idx on public.spins (user_id);
