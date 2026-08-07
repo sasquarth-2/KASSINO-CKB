@@ -115,6 +115,31 @@ create trigger on_auth_user_created
 -- SQL Query to force make an existing user an admin (Run this in Supabase SQL editor if user is already registered):
 -- UPDATE public.profiles SET is_admin = true WHERE id = (SELECT id FROM auth.users WHERE email = 'sasquarth@gmail.com');
 
+-- 4. Security Trigger to prevent client-side modifications of sensitive columns
+create or replace function public.check_profile_update()
+returns trigger as $$
+begin
+  -- If the session is authenticated (client-side user), block modifications to balance, is_admin, or last_daily_claim
+  if auth.role() = 'authenticated' then
+    if new.balance is distinct from old.balance then
+      raise exception 'Permissão negada: Não é possível modificar o saldo diretamente pelo front-end.';
+    end if;
+    if new.is_admin is distinct from old.is_admin then
+      raise exception 'Permissão negada: Não é possível modificar o privilégio de administrador diretamente pelo front-end.';
+    end if;
+    if new.last_daily_claim is distinct from old.last_daily_claim then
+      raise exception 'Permissão negada: Não é possível modificar a data de recarga diretamente pelo front-end.';
+    end if;
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+-- Drop trigger if exists and recreate
+drop trigger if exists check_profile_update_trigger on public.profiles;
+create trigger check_profile_update_trigger
+  before update on public.profiles
+  for each row execute procedure public.check_profile_update();
 
 -- Create Indexes for performance
 create index if not exists profiles_balance_idx on public.profiles (balance desc);
