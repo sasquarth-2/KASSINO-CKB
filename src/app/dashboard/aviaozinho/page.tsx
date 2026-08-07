@@ -508,7 +508,7 @@ export default function Aviaozinho() {
         if (planeImageRef.current && planeImageRef.current.complete) {
           ctx.drawImage(planeImageRef.current, planeX - 25, planeY - 35, 60, 50);
         } else {
-          ctx.fillStyle = "var(--bright-gold)";
+          ctx.fillStyle = "#ffd700";
           ctx.fillRect(planeX - 15, planeY - 15, 30, 30);
         }
 
@@ -529,7 +529,7 @@ export default function Aviaozinho() {
         // Draw flight path curve line
         const gradient = ctx.createLinearGradient(originX, originY, endX, endY);
         gradient.addColorStop(0, "rgba(211, 47, 47, 0.3)");
-        gradient.addColorStop(1, "var(--bright-gold)");
+        gradient.addColorStop(1, "#ffd700");
 
         ctx.strokeStyle = gradient;
         ctx.lineWidth = 4;
@@ -566,7 +566,7 @@ export default function Aviaozinho() {
           if (planeImageRef.current && planeImageRef.current.complete) {
             ctx.drawImage(planeImageRef.current, endX - 30 + shakeX, endY - 30 + shakeY, 70, 55);
           } else {
-            ctx.fillStyle = "var(--bright-gold)";
+            ctx.fillStyle = "#ffd700";
             ctx.fillRect(endX - 15, endY - 15, 30, 30);
           }
         } else if (gameStatus === "crashed") {
@@ -588,7 +588,7 @@ export default function Aviaozinho() {
             ctx.beginPath();
             ctx.arc(endX, endY, 20 * flyAwayTime, 0, Math.PI * 2);
             ctx.fill();
-            ctx.fillStyle = "var(--bright-gold)";
+            ctx.fillStyle = "#ffd700";
             ctx.beginPath();
             ctx.arc(endX, endY, 10 * flyAwayTime, 0, Math.PI * 2);
             ctx.fill();
