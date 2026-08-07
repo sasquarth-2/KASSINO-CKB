@@ -222,3 +222,82 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 215, 0, 0.4);
 }
+
+/* ==========================================================================
+   Mobile & Responsive Layout Tweaks (Celular)
+   ========================================================================== */
+
+/* 1. Dashboard container: reduce padding to maximize screen space */
+@media (max-width: 600px) {
+  .dashboard-container {
+    padding: 8px !important;
+    gap: 12px !important;
+  }
+}
+
+/* 2. Navigation Header: stack items on small screens */
+@media (max-width: 650px) {
+  .nav-bar {
+    padding: 10px 14px !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+  .nav-bar > div {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+/* 3. Main Dashboard Grid: stack sidebar below slot machine */
+.dashboard-grid {
+  display: grid !important;
+}
+
+@media (max-width: 900px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+}
+
+/* 4. Mascot & Speech Bubble sizing for phones */
+@media (max-width: 500px) {
+  .mascot-img {
+    width: 100px !important;
+    height: 100px !important;
+  }
+  .mascot-bubble {
+    font-size: 0.8rem !important;
+    padding: 8px 12px !important;
+    max-width: 210px !important;
+    margin-bottom: 2px !important;
+  }
+}
+
+/* 5. Slot Shell margins and padding reduction */
+@media (max-width: 500px) {
+  .slot-shell {
+    padding: 14px 10px !important;
+    border-width: 2px !important;
+    border-radius: 12px !important;
+  }
+}
+
+/* 6. Controls Grid: re-stack to double columns, with full-width JOGAR button */
+.controls-grid {
+  display: grid !important;
+}
+
+@media (max-width: 500px) {
+  .controls-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+  .controls-grid .btn-primary {
+    grid-column: span 2 !important;
+    height: 48px !important;
+    margin-top: 4px !important;
+  }
+}
+

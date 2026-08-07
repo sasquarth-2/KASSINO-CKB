@@ -511,9 +511,9 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={styles.dashboardContainer}>
+    <div className="dashboard-container" style={styles.dashboardContainer}>
       {/* Header bar */}
-      <header style={styles.navBar} className="glass-panel">
+      <header className="nav-bar glass-panel" style={styles.navBar}>
         <div style={styles.navLeft}>
           <Coins size={24} color="var(--bright-gold)" />
           <h2 className="gold-text" style={{ fontSize: "1.4rem", margin: 0 }}>KASSINO CKB</h2>
@@ -544,7 +544,7 @@ export default function Dashboard() {
       </header>
 
       {/* Main Grid View */}
-      <main style={styles.mainGrid}>
+      <main className="dashboard-grid" style={styles.mainGrid}>
         
         {/* Left Side: Game Area */}
         <section style={styles.gameSection}>
@@ -561,7 +561,7 @@ export default function Dashboard() {
             <img 
               src="/images/tiger_mascot.png" 
               alt="Fortune Tiger Mascot"
-              className={`floating ${tigerState === "roar" ? "roaring-tiger" : ""}`}
+              className={`mascot-img floating ${tigerState === "roar" ? "roaring-tiger" : ""}`}
               style={{
                 width: "140px",
                 height: "140px",
@@ -573,7 +573,7 @@ export default function Dashboard() {
           </div>
 
           {/* Slot Machine Shell */}
-          <div style={styles.slotShell} className="glass-panel">
+          <div className="slot-shell glass-panel" style={styles.slotShell}>
             {/* Feature Banner overlay */}
             {inFeature && (
               <div style={styles.featureHeader}>
@@ -679,7 +679,7 @@ export default function Dashboard() {
             </div>
 
             {/* Bet and Spin Controls */}
-            <div style={styles.controlsGrid}>
+            <div className="controls-grid" style={styles.controlsGrid}>
               <div style={styles.controlGroup}>
                 <span style={styles.controlLabel}>APOSTA</span>
                 <div style={styles.betSelector}>
