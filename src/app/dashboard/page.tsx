@@ -350,7 +350,7 @@ export default function Lobby() {
             <div style={{ ...styles.gameCard, background: "linear-gradient(180deg, rgba(30,10,45,0.6) 0%, rgba(15,5,25,0.7) 100%)" }} className="glass-panel">
               <div style={styles.cardImageArea}>
                 <img 
-                  src="/images/luka.png" 
+                  src="/images/black-jack.png" 
                   alt="Blackjack da Dengue" 
                   style={styles.cardLukaImg}
                   className="floating"
