@@ -66,8 +66,7 @@ export default function Dashboard() {
   const [tigerState, setTigerState] = useState<"idle" | "spin" | "win" | "roar">("idle");
   const [isMuted, setIsMuted] = useState(false);
 
-  // Auto & Turbo options
-  const [turbo, setTurbo] = useState(false);
+  // Auto option
   const [autoSpins, setAutoSpins] = useState(0);
   const autoSpinsRef = useRef(autoSpins);
 
@@ -329,10 +328,10 @@ export default function Dashboard() {
         setGrid(data.grid);
       }
 
-      // Determine animation delays based on Turbo toggle
-      const col1Delay = turbo ? 400 : 1000;
-      const col2Delay = turbo ? 700 : 1500;
-      const col3Delay = turbo ? 1000 : 2000;
+      // Determine animation delays (constant smooth durations)
+      const col1Delay = 1000;
+      const col2Delay = 1500;
+      const col3Delay = 2000;
 
       // Reel 1 stop
       setTimeout(() => {
@@ -425,7 +424,7 @@ export default function Dashboard() {
 
     // Loop through each respin step sequentially with delays
     for (let i = 1; i < respinSteps.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, turbo ? 1000 : 1600));
+      await new Promise(resolve => setTimeout(resolve, 1600));
 
       setFeatureRound(i + 1);
 
@@ -433,7 +432,7 @@ export default function Dashboard() {
       setSpinning(true);
       gameAudio.playSpin();
 
-      await new Promise(resolve => setTimeout(resolve, turbo ? 400 : 800));
+      await new Promise(resolve => setTimeout(resolve, 800));
 
       setSpinning(false);
       setGrid(respinSteps[i]);
@@ -721,26 +720,15 @@ export default function Dashboard() {
 
               {/* Mode Selection */}
               <div style={styles.controlGroup}>
-                <span style={styles.controlLabel}>CONFIG</span>
+                <span style={styles.controlLabel}>AUTO GIRO</span>
                 <div style={styles.configControls}>
-                  <button
-                    style={{
-                      ...styles.toggleConfigBtn,
-                      background: turbo ? "linear-gradient(135deg, #f44336 0%, #d32f2f 100%)" : "rgba(255,255,255,0.05)",
-                      color: turbo ? "white" : "var(--text-muted)",
-                      borderColor: turbo ? "var(--primary-red)" : "rgba(255,255,255,0.1)"
-                    }}
-                    onClick={() => setTurbo(!turbo)}
-                  >
-                    TURBO
-                  </button>
-
                   <button
                     style={{
                       ...styles.toggleConfigBtn,
                       background: autoSpins > 0 ? "linear-gradient(135deg, #ffd700 0%, #c5a059 100%)" : "rgba(255,255,255,0.05)",
                       color: autoSpins > 0 ? "#300" : "var(--text-muted)",
-                      borderColor: autoSpins > 0 ? "var(--bright-gold)" : "rgba(255,255,255,0.1)"
+                      borderColor: autoSpins > 0 ? "var(--bright-gold)" : "rgba(255,255,255,0.1)",
+                      width: "100%"
                     }}
                     onClick={() => setAutoSpins(prev => {
                       if (prev === 0) return 10;
