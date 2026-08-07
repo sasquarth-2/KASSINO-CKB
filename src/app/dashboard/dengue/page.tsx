@@ -348,7 +348,12 @@ export default function DengueGame() {
 
           <div style={styles.statusBanner}>
             {gameStatus === "betting" && (
-              <h3 style={{ margin: 0, color: "var(--text-light)" }}>FAÇAM SUAS APOSTAS!</h3>
+              <>
+                <h3 style={{ margin: 0, color: "var(--text-light)" }}>FAÇAM SUAS APOSTAS!</h3>
+                <p style={{ margin: "6px 0 0 0", fontSize: "0.95rem", color: "var(--bright-gold)", fontStyle: "italic" }}>
+                  "Que carta estou segurando?"
+                </p>
+              </>
             )}
             {gameStatus === "revealing" && (
               <h3 className="gold-text" style={{ margin: 0 }}>
