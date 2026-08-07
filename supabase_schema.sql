@@ -220,6 +220,46 @@ create policy "Allow users to read their own dengue bets"
   to authenticated
   using (auth.uid() = user_id);
 
+-- 8. O Racha Tables (Multiplayer race game)
+create table if not exists public.active_racha_round (
+  id int primary key default 1 check (id = 1),
+  round_id uuid not null default gen_random_uuid(),
+  status text not null default 'betting', -- 'betting', 'racing', 'reset'
+  betting_start_time timestamp with time zone not null default now(),
+  race_start_time timestamp with time zone,
+  winning_vehicle text, -- 'ford-ka', 'purpple-horse', 'green-horse', 'yellow-horse', 'blue-horse'
+  updated_at timestamp with time zone not null default now()
+);
+
+-- Seed active_racha_round row if not exists
+insert into public.active_racha_round (id, status, betting_start_time)
+values (1, 'betting', now())
+on conflict (id) do nothing;
+
+-- Enable RLS for active_racha_round (no select policies to prevent client-side sniffing)
+alter table public.active_racha_round enable row level security;
+drop policy if exists "Allow authenticated users to read active racha round" on public.active_racha_round;
+
+create table if not exists public.racha_bets (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users on delete cascade not null,
+  round_id uuid not null,
+  bet_amount numeric not null check (bet_amount >= 10),
+  selected_vehicle text not null, -- 'ford-ka', 'purpple-horse', 'green-horse', 'yellow-horse', 'blue-horse'
+  status text not null default 'pending', -- pending, won, lost
+  created_at timestamp with time zone not null default now()
+);
+
+-- Enable RLS for racha_bets
+alter table public.racha_bets enable row level security;
+
+drop policy if exists "Allow users to read their own racha bets" on public.racha_bets;
+create policy "Allow users to read their own racha bets"
+  on public.racha_bets
+  for select
+  to authenticated
+  using (auth.uid() = user_id);
+
 -- Create Indexes for performance
 create index if not exists profiles_balance_idx on public.profiles (balance desc);
 create index if not exists spins_user_id_idx on public.spins (user_id);
@@ -227,3 +267,5 @@ create index if not exists spins_created_at_idx on public.spins (created_at desc
 create index if not exists crash_rounds_history_created_at_idx on public.crash_rounds_history (created_at desc);
 create index if not exists dengue_bets_round_id_idx on public.dengue_bets (round_id);
 create index if not exists dengue_bets_user_id_idx on public.dengue_bets (user_id);
+create index if not exists racha_bets_round_id_idx on public.racha_bets (round_id);
+create index if not exists racha_bets_user_id_idx on public.racha_bets (user_id);

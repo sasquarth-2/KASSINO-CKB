@@ -370,6 +370,31 @@ export default function Lobby() {
                 </button>
               </div>
             </div>
+
+            {/* Game 5: O Racha */}
+            <div style={{ ...styles.gameCard, background: "linear-gradient(180deg, rgba(50,15,15,0.6) 0%, rgba(20,5,5,0.7) 100%)" }} className="glass-panel">
+              <div style={styles.cardImageArea}>
+                <img 
+                  src="/images/racha-do-ka.png" 
+                  alt="O Racha" 
+                  style={styles.cardRachaImg}
+                  className="floating"
+                />
+              </div>
+              <div style={styles.cardDetails}>
+                <h3 className="gold-text" style={{ fontSize: "1.5rem", margin: "0 0 8px 0" }}>O Racha</h3>
+                <p style={styles.cardText}>
+                  Aposte no cavalo vencedor ou no Ford KA do Eduardo! Corrida síncrona multiplayer com multiplicadores de até 100x!
+                </p>
+                <button 
+                  onClick={() => router.push("/dashboard/racha")}
+                  className="btn-primary" 
+                  style={{ width: "100%", marginTop: "auto" }}
+                >
+                  <Play size={16} fill="currentColor" /> Jogar O Racha
+                </button>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -635,6 +660,11 @@ const styles: Record<string, React.CSSProperties> = {
   cardLukaImg: {
     width: "150px",
     height: "150px",
+    objectFit: "contain",
+  },
+  cardRachaImg: {
+    width: "170px",
+    height: "170px",
     objectFit: "contain",
   },
   cardDetails: {
