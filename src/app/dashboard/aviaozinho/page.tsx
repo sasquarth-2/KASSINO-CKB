@@ -723,7 +723,6 @@ export default function Aviaozinho() {
           roundId: betRoundId, // Send locked roundId
           betAmount: activeBetAmount,
           cashoutMultiplier: cashoutVal,
-          crashPoint: crashPoint,
           timestamp: betTimestamp,
           signature: betSignature
         })

@@ -21,30 +21,16 @@ export async function POST(req: NextRequest) {
 
     // 3. Parse request body
     const body = await req.json();
-    const { roundId, betAmount, cashoutMultiplier, crashPoint, timestamp, signature } = body;
+    const { roundId, betAmount, cashoutMultiplier, timestamp, signature } = body;
 
     const parsedBet = parseFloat(betAmount);
     const parsedCashout = parseFloat(cashoutMultiplier);
-    const parsedCrash = parseFloat(crashPoint);
 
-    if (isNaN(parsedBet) || isNaN(parsedCashout) || isNaN(parsedCrash) || !roundId) {
+    if (isNaN(parsedBet) || isNaN(parsedCashout) || !roundId) {
       return NextResponse.json({ error: "Invalid parameters" }, { status: 400 });
     }
 
-    // 4. Verify HMAC signature to prevent clients from forging crash points, roundIds, or bet amounts
-    const secret = process.env.SUPABASE_SERVICE_ROLE_KEY || "kassino-secret-fallback";
-    const payload = `${user.id}:${parsedBet.toFixed(2)}:${parsedCrash.toFixed(2)}:${roundId}:${timestamp}`;
-    
-    const expectedSignature = crypto
-      .createHmac("sha256", secret)
-      .update(payload)
-      .digest("hex");
-
-    if (signature !== expectedSignature) {
-      return NextResponse.json({ error: "Security check failed: Cheat attempt detected!" }, { status: 403 });
-    }
-
-    // 5. Initialize Supabase Admin and fetch current active round info
+    // 4. Initialize Supabase Admin and fetch current active round info first to retrieve crashPoint
     const supabaseAdmin = getSupabaseAdmin();
 
     const { data: activeRound, error: activeRoundError } = await supabaseAdmin
@@ -67,8 +53,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "O avião já decolou! Você perdeu o tempo do Cash Out." }, { status: 400 });
     }
 
-    // Verify they cashed out BEFORE the plane crashed
-    if (parsedCashout > parsedCrash) {
+    const roundCrashPoint = parseFloat(activeRound.crash_point.toString());
+
+    // 5. Verify HMAC signature to prevent clients from forging roundIds or bet amounts
+    const secret = process.env.SUPABASE_SERVICE_ROLE_KEY || "kassino-secret-fallback";
+    const payload = `${user.id}:${parsedBet.toFixed(2)}:${roundCrashPoint.toFixed(2)}:${roundId}:${timestamp}`;
+    
+    const expectedSignature = crypto
+      .createHmac("sha256", secret)
+      .update(payload)
+      .digest("hex");
+
+    if (signature !== expectedSignature) {
+      return NextResponse.json({ error: "Security check failed: Cheat attempt detected!" }, { status: 403 });
+    }
+
+    // 6. Verify they cashed out BEFORE the plane crashed
+    if (parsedCashout > roundCrashPoint) {
       // Player cashed out AFTER the crash point! They lose.
       // Log the loss in the database
       const { data: profile } = await supabaseAdmin
@@ -83,7 +84,7 @@ export async function POST(req: NextRequest) {
         bet_amount: parsedBet,
         win_amount: 0,
         multiplier: 0,
-        symbols: ["crash", "perdeu", parsedCrash.toFixed(2)],
+        symbols: ["crash", "perdeu", roundCrashPoint.toFixed(2)],
         is_feature_trigger: false,
       });
 
@@ -127,7 +128,7 @@ export async function POST(req: NextRequest) {
       bet_amount: parsedBet,
       win_amount: winAmount,
       multiplier: parsedCashout,
-      symbols: ["crash", parsedCashout.toFixed(2), parsedCrash.toFixed(2)],
+      symbols: ["crash", parsedCashout.toFixed(2), roundCrashPoint.toFixed(2)],
       is_feature_trigger: false,
     });
 
