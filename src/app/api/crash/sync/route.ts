@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseAdmin } from "@/lib/supabase-client";
+import { supabase, getSupabaseAdmin } from "@/lib/supabase-client";
 import crypto from "crypto";
 
 // Calculate duration of the flight for a given crash point
@@ -36,6 +36,19 @@ function rollCrashPoint(): number {
 
 export async function GET(req: NextRequest) {
   try {
+    // Validate session token
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized: Missing auth token" }, { status: 401 });
+    }
+
+    const token = authHeader.split(" ")[1];
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized: Invalid session" }, { status: 401 });
+    }
+
     const supabaseAdmin = getSupabaseAdmin();
     const now = Date.now();
 

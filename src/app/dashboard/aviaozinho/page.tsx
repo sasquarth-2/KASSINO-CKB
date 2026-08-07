@@ -231,8 +231,13 @@ export default function Aviaozinho() {
 
   // 1. Initial Load & Polling (Global Synchronization Engine)
   const fetchGlobalSync = useCallback(async () => {
+    if (!sessionToken) return;
     try {
-      const res = await fetch("/api/crash/sync");
+      const res = await fetch("/api/crash/sync", {
+        headers: {
+          "Authorization": `Bearer ${sessionToken}`
+        }
+      });
       if (!res.ok) return;
       const data = await res.json();
 
@@ -271,7 +276,7 @@ export default function Aviaozinho() {
     } catch (err) {
       console.error("Failed to sync global round state:", err);
     }
-  }, []);
+  }, [sessionToken]);
 
   useEffect(() => {
     const init = async () => {
