@@ -31,6 +31,9 @@ export default function CapMateGame() {
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [isMuted, setIsMuted] = useState(false);
 
+  // Responsive state
+  const [isMobile, setIsMobile] = useState(false);
+
   // Game Play States
   const [gameState, setGameState] = useState<"idle" | "playing" | "won" | "lost">("idle");
   const [betInput, setBetInput] = useState<string>("100");
@@ -79,6 +82,13 @@ export default function CapMateGame() {
 
   useEffect(() => {
     fetchProfileData();
+
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 860);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [fetchProfileData]);
 
   // Helpers to count revealed animals
@@ -294,9 +304,9 @@ export default function CapMateGame() {
   }
 
   return (
-    <div style={styles.dashboardContainer}>
+    <div style={{ ...styles.dashboardContainer, padding: isMobile ? "12px" : "24px" }}>
       {/* Navbar Header */}
-      <header className="nav-bar glass-panel" style={styles.navBar}>
+      <header className="nav-bar glass-panel" style={{ ...styles.navBar, padding: isMobile ? "10px 14px" : "14px 24px" }}>
         <div style={styles.navLeft}>
           <button style={styles.backBtn} onClick={() => router.push("/dashboard")} title="Voltar ao Lobby">
             <ArrowLeft size={20} color="var(--bright-gold)" />
@@ -322,11 +332,21 @@ export default function CapMateGame() {
       </header>
 
       {/* Main Content Area */}
-      <main style={styles.mainGrid}>
+      <main style={{
+        ...styles.mainGrid,
+        display: isMobile ? "flex" : "grid",
+        flexDirection: isMobile ? "column" : "row",
+        gridTemplateColumns: isMobile ? "1fr" : "1fr 360px",
+        gap: isMobile ? "16px" : "24px"
+      }}>
         
         {/* Left Side: 6x6 Card Grid */}
         <section style={styles.gridSection}>
-          <div style={styles.gridContainer} className="glass-panel">
+          <div style={{
+            ...styles.gridContainer,
+            gap: isMobile ? "6px" : "10px",
+            padding: isMobile ? "10px" : "20px"
+          }} className="glass-panel">
             {cards.map((card, i) => {
               const showLoading = loadingIndex === i;
               
