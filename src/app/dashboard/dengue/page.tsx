@@ -613,13 +613,13 @@ const styles: Record<string, React.CSSProperties> = {
   },
   mysteryCardContainer: {
     position: "absolute",
-    width: "74px",
-    height: "104px",
+    width: "90px",
+    height: "90px",
     borderRadius: "8px",
     overflow: "hidden",
     zIndex: 5,
     top: "140px",
-    left: "103px",
+    left: "95px",
     boxShadow: "0 4px 15px rgba(0,0,0,0.5)",
     transition: "transform 0.4s ease",
     transformStyle: "preserve-3d",
@@ -655,8 +655,8 @@ const styles: Record<string, React.CSSProperties> = {
     padding: "8px",
   },
   cardImg: {
-    width: "90%",
-    height: "90%",
+    width: "100%",
+    height: "100%",
     objectFit: "contain",
   },
   revealLoader: {
@@ -719,7 +719,7 @@ const styles: Record<string, React.CSSProperties> = {
     marginTop: "6px",
   },
   cardSelectBtn: {
-    aspectRatio: "0.8",
+    aspectRatio: "1",
     borderWidth: "1px",
     borderStyle: "solid",
     borderRadius: "8px",
@@ -733,8 +733,8 @@ const styles: Record<string, React.CSSProperties> = {
     transition: "all 0.2s ease",
   },
   cardSelectIcon: {
-    width: "70%",
-    height: "70%",
+    width: "90%",
+    height: "90%",
     objectFit: "contain",
   },
   betConfirmedBox: {
