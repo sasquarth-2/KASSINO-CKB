@@ -360,12 +360,14 @@ export default function Dashboard() {
           // Apply new balance from DB
           setProfile(prev => prev ? { ...prev, balance: data.newBalance } : null);
 
+          let hasCelebration = false;
           if (data.totalWin > 0) {
             setWinLines(data.winLines);
             setTigerState("win");
 
             if (data.totalMultiplier >= 15 || data.isFullGridWin) {
               triggerBigWinCelebration(data.totalWin, data.totalMultiplier);
+              hasCelebration = true;
             } else {
               gameAudio.playWin();
             }
@@ -373,8 +375,10 @@ export default function Dashboard() {
             setTigerState("idle");
           }
 
-          // Decrement auto spins if active
-          handleAutoSpinsDecrement();
+          // Decrement auto spins if active and no celebration is showing
+          if (!hasCelebration) {
+            handleAutoSpinsDecrement();
+          }
         }
       }, col3Delay);
 
@@ -447,12 +451,14 @@ export default function Dashboard() {
     // Apply final profile balance
     setProfile(prev => prev ? { ...prev, balance: data.newBalance } : null);
 
+    let hasCelebration = false;
     if (data.totalWin > 0) {
       setWinLines(data.winLines);
       setTigerState("win");
 
       if (data.totalMultiplier >= 15 || data.isFullGridWin) {
         triggerBigWinCelebration(data.totalWin, data.totalMultiplier);
+        hasCelebration = true;
       } else {
         gameAudio.playWin();
       }
@@ -460,8 +466,10 @@ export default function Dashboard() {
       setTigerState("idle");
     }
 
-    // Keep auto spins running
-    handleAutoSpinsDecrement();
+    // Keep auto spins running only if no celebration popup is showing
+    if (!hasCelebration) {
+      handleAutoSpinsDecrement();
+    }
   };
 
   // 5. Big Win Celebration Popup with confetti showers
@@ -496,6 +504,12 @@ export default function Dashboard() {
       }
     };
     frame();
+  };
+
+  // Close celebration overlay and resume auto spin sequence
+  const closeCelebrationAndResumeAuto = () => {
+    setShowCelebration(false);
+    handleAutoSpinsDecrement();
   };
 
   // Logout handler
@@ -944,8 +958,8 @@ export default function Dashboard() {
 
       {/* 6. Celebration Big Win Overlay Modal */}
       {showCelebration && (
-        <div className="celebration-overlay" onClick={() => setShowCelebration(false)}>
-          <div className="big-win-content" style={styles.celebrationModal}>
+        <div className="celebration-overlay" onClick={closeCelebrationAndResumeAuto}>
+          <div className="big-win-content" style={styles.celebrationModal} onClick={(e) => e.stopPropagation()}>
             <Flame size={64} color="var(--bright-gold)" className="roaring-tiger" />
             <h1 className="gold-text" style={styles.celebrationTitle}>GRANDE GANHO!</h1>
             <p style={styles.celebrationSub}>O TIGRE ABENÇOOU SUA JOGADA</p>
@@ -961,7 +975,7 @@ export default function Dashboard() {
 
             <button
               className="btn-primary"
-              onClick={() => setShowCelebration(false)}
+              onClick={closeCelebrationAndResumeAuto}
               style={{ marginTop: "24px", padding: "12px 36px" }}
             >
               COLETAR CKBUCKS
