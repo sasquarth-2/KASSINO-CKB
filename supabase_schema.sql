@@ -177,8 +177,56 @@ create policy "Allow authenticated users to read crash history"
   to authenticated
   using (true);
 
+-- 7. Blackjack da Dengue Tables (Multiplayer state machine and bets)
+create table if not exists public.active_dengue_round (
+  id int primary key default 1 check (id = 1),
+  round_id uuid not null default gen_random_uuid(),
+  status text not null default 'betting', -- 'betting', 'revealing', 'reset'
+  betting_start_time timestamp with time zone not null default now(),
+  reveal_start_time timestamp with time zone,
+  winning_card text, -- dengue, cigaro, frango, cap-mate, sapo
+  updated_at timestamp with time zone not null default now()
+);
+
+-- Seed active_dengue_round row if not exists
+insert into public.active_dengue_round (id, status, betting_start_time)
+values (1, 'betting', now())
+on conflict (id) do nothing;
+
+-- Enable RLS for active_dengue_round
+alter table public.active_dengue_round enable row level security;
+
+drop policy if exists "Allow authenticated users to read active dengue round" on public.active_dengue_round;
+create policy "Allow authenticated users to read active dengue round"
+  on public.active_dengue_round
+  for select
+  to authenticated
+  using (true);
+
+create table if not exists public.dengue_bets (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users on delete cascade not null,
+  round_id uuid not null,
+  bet_amount numeric not null check (bet_amount >= 10),
+  selected_card text not null, -- dengue, cigaro, frango, cap-mate, sapo
+  status text not null default 'pending', -- pending, won, lost
+  created_at timestamp with time zone not null default now()
+);
+
+-- Enable RLS for dengue_bets
+alter table public.dengue_bets enable row level security;
+
+drop policy if exists "Allow users to read their own dengue bets" on public.dengue_bets;
+create policy "Allow users to read their own dengue bets"
+  on public.dengue_bets
+  for select
+  to authenticated
+  using (auth.uid() = user_id);
+
 -- Create Indexes for performance
 create index if not exists profiles_balance_idx on public.profiles (balance desc);
 create index if not exists spins_user_id_idx on public.spins (user_id);
 create index if not exists spins_created_at_idx on public.spins (created_at desc);
 create index if not exists crash_rounds_history_created_at_idx on public.crash_rounds_history (created_at desc);
+create index if not exists dengue_bets_round_id_idx on public.dengue_bets (round_id);
+create index if not exists dengue_bets_user_id_idx on public.dengue_bets (user_id);

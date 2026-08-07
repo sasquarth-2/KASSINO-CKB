@@ -345,6 +345,31 @@ export default function Lobby() {
                 </button>
               </div>
             </div>
+
+            {/* Game 4: Blackjack da Dengue */}
+            <div style={{ ...styles.gameCard, background: "linear-gradient(180deg, rgba(30,10,45,0.6) 0%, rgba(15,5,25,0.7) 100%)" }} className="glass-panel">
+              <div style={styles.cardImageArea}>
+                <img 
+                  src="/images/luka.png" 
+                  alt="Blackjack da Dengue" 
+                  style={styles.cardLukaImg}
+                  className="floating"
+                />
+              </div>
+              <div style={styles.cardDetails}>
+                <h3 className="gold-text" style={{ fontSize: "1.5rem", margin: "0 0 8px 0" }}>Blackjack da Dengue</h3>
+                <p style={styles.cardText}>
+                  Adivinhe qual carta o Luka está segurando na mesa de bar. Acerte e multiplique por 4x, ou tire a carta Dengue e ganhe 10x!
+                </p>
+                <button 
+                  onClick={() => router.push("/dashboard/dengue")}
+                  className="btn-primary" 
+                  style={{ width: "100%", marginTop: "auto", background: "linear-gradient(135deg, #4a148c 0%, #311b92 100%)", borderColor: "#6a1b9a" }}
+                >
+                  <Play size={16} fill="currentColor" /> Jogar Blackjack
+                </button>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -603,6 +628,11 @@ const styles: Record<string, React.CSSProperties> = {
     objectFit: "contain",
   },
   cardMateImg: {
+    width: "150px",
+    height: "150px",
+    objectFit: "contain",
+  },
+  cardLukaImg: {
     width: "150px",
     height: "150px",
     objectFit: "contain",
