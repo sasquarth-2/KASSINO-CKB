@@ -19,10 +19,10 @@ interface Profile {
 
 const CARDS_POOL = [
   { id: "dengue", label: "Dengue (10x Payout)", multiplier: 10.0 },
-  { id: "cigaro", label: "Cigaro (4x Payout)", multiplier: 4.0 },
-  { id: "frango", label: "Frango (4x Payout)", multiplier: 4.0 },
+  { id: "cigaro", label: "Cigaro (8x Payout)", multiplier: 8.0 },
+  { id: "frango", label: "Frango (5x Payout)", multiplier: 5.0 },
   { id: "cap-mate", label: "Cap. Mate (4x Payout)", multiplier: 4.0 },
-  { id: "sapo", label: "Sapo (4x Payout)", multiplier: 4.0 }
+  { id: "sapo", label: "Sapo (3x Payout)", multiplier: 3.0 }
 ];
 
 export default function DengueGame() {
