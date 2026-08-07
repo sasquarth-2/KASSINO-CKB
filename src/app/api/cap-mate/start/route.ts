@@ -16,7 +16,7 @@ function shuffleArray<T>(array: T[]): T[] {
 // Generate the 6x6 grid with mines (cap-mate) and animals
 function generateGrid(): string[] {
   const totalCards = 36;
-  const minesCount = 10; // Standard 10 cap-mates
+  const minesCount = 15; // Increased by 50% (from 10 to 15) to make it more difficult
   const grid: string[] = [];
 
   const isSuperWinRound = Math.random() < 0.10; // 10% chance
@@ -27,18 +27,18 @@ function generateGrid(): string[] {
     const targetAnimal = animals[Math.floor(Math.random() * animals.length)];
     const otherAnimals = animals.filter(a => a !== targetAnimal);
 
-    // 6 target animals, 10 mines, 10 of animal B, 10 of animal C
+    // 6 target animals, 15 mines, 8 of animal B, 7 of animal C
     for (let i = 0; i < 6; i++) grid.push(targetAnimal);
     for (let i = 0; i < minesCount; i++) grid.push("cap-mate");
-    for (let i = 0; i < 10; i++) grid.push(otherAnimals[0]);
-    for (let i = 0; i < 10; i++) grid.push(otherAnimals[1]);
+    for (let i = 0; i < 8; i++) grid.push(otherAnimals[0]);
+    for (let i = 0; i < 7; i++) grid.push(otherAnimals[1]);
   } else {
     // Normal round card distribution
-    // 10 mines, 9 chimpas, 9 micos, 8 ursos
+    // 15 mines, 7 chimpas, 7 micos, 7 ursos
     for (let i = 0; i < minesCount; i++) grid.push("cap-mate");
-    for (let i = 0; i < 9; i++) grid.push("chimpa");
-    for (let i = 0; i < 9; i++) grid.push("mico");
-    for (let i = 0; i < 8; i++) grid.push("urso");
+    for (let i = 0; i < 7; i++) grid.push("chimpa");
+    for (let i = 0; i < 7; i++) grid.push("mico");
+    for (let i = 0; i < 7; i++) grid.push("urso");
   }
 
   return shuffleArray(grid);
