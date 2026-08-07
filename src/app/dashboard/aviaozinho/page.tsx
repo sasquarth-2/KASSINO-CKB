@@ -56,7 +56,7 @@ export default function Aviaozinho() {
 
   // Crash Game Loop States
   const [gameStatus, setGameStatus] = useState<"betting" | "flying" | "crashed">("betting");
-  const [countdown, setCountdown] = useState<number>(5.0);
+  const [countdown, setCountdown] = useState<number>(8.0);
   const [currentMultiplier, setCurrentMultiplier] = useState<number>(1.00);
   const [crashPoint, setCrashPoint] = useState<number>(1.00);
   const [recentMultipliers, setRecentMultipliers] = useState<CrashRoundHistory[]>([]);
@@ -76,6 +76,10 @@ export default function Aviaozinho() {
   // Multiplayer Lobby Simulation States
   const [friendBets, setFriendBets] = useState<FriendBet[]>([]);
 
+  // Queued Bet States (allows placing bets during flight)
+  const [isQueuedBet, setIsQueuedBet] = useState<boolean>(false);
+  const [queuedBetAmount, setQueuedBetAmount] = useState<number>(0);
+
   // Canvas Reference
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const planeImageRef = useRef<HTMLImageElement | null>(null);
@@ -86,6 +90,47 @@ export default function Aviaozinho() {
     const muted = gameAudio.toggleMute();
     setIsMuted(muted);
   };
+
+  // Core API Bet Placement function
+  const placeBetApi = useCallback(async (amount: number) => {
+    if (!sessionToken || isApiLoading) return;
+    setIsApiLoading(true);
+    setClaimMessage(null);
+
+    try {
+      const res = await fetch("/api/crash/bet", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${sessionToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ betAmount: amount })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setClaimMessage({ text: data.error || "Erro ao fazer aposta.", type: "error" });
+      } else {
+        // Success
+        setHasBet(true);
+        setActiveBetAmount(amount);
+        setCrashPoint(data.crashPoint);
+        setBetTimestamp(data.timestamp);
+        setBetSignature(data.signature);
+        setIsCashedOut(false);
+        setWonAmount(0);
+
+        // Deduct balance locally
+        setProfile(prev => prev ? { ...prev, balance: data.newBalance } : null);
+        gameAudio.playWin();
+      }
+    } catch (err) {
+      console.error("Crash bet request error:", err);
+      setClaimMessage({ text: "Erro de conexão com o servidor.", type: "error" });
+    } finally {
+      setIsApiLoading(false);
+    }
+  }, [sessionToken, isApiLoading]);
 
   // Load aviaozinho image helper
   useEffect(() => {
@@ -305,6 +350,12 @@ export default function Aviaozinho() {
     setIsCashedOut(false);
     setWonAmount(0);
 
+    // If there is a queued bet, place it automatically!
+    if (isQueuedBet) {
+      placeBetApi(queuedBetAmount);
+      setIsQueuedBet(false);
+    }
+
     // Generate simulated bets of other friends from leaderboard
     const simulateFriendsBets = () => {
       if (leaderboard.length === 0) return;
@@ -398,7 +449,7 @@ export default function Aviaozinho() {
 
         // Start countdown to next round after 3 seconds
         setTimeout(() => {
-          setCountdown(5.0);
+          setCountdown(8.0);
           setGameStatus("betting");
         }, 3000);
 
@@ -613,9 +664,7 @@ export default function Aviaozinho() {
 
   // 1. Places the bet for the current round
   const handlePlaceBet = async () => {
-    if (!sessionToken || isApiLoading || hasBet) return;
-    setClaimMessage(null);
-
+    if (hasBet) return;
     const betAmountNum = parseFloat(betInput);
     if (isNaN(betAmountNum) || betAmountNum < 10 || betAmountNum > 10000) {
       setClaimMessage({ text: "Insira uma aposta entre CKB$ 10 e CKB$ 10.000", type: "error" });
@@ -627,41 +676,7 @@ export default function Aviaozinho() {
       return;
     }
 
-    setIsApiLoading(true);
-
-    try {
-      const res = await fetch("/api/crash/bet", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${sessionToken}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ betAmount: betAmountNum })
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        setClaimMessage({ text: data.error || "Erro ao fazer aposta.", type: "error" });
-      } else {
-        // Success
-        setHasBet(true);
-        setActiveBetAmount(betAmountNum);
-        setCrashPoint(data.crashPoint);
-        setBetTimestamp(data.timestamp);
-        setBetSignature(data.signature);
-        setIsCashedOut(false);
-        setWonAmount(0);
-
-        // Deduct balance locally
-        setProfile(prev => prev ? { ...prev, balance: data.newBalance } : null);
-        gameAudio.playWin();
-      }
-    } catch (err) {
-      console.error("Crash bet request error:", err);
-      setClaimMessage({ text: "Erro de conexão com o servidor.", type: "error" });
-    } finally {
-      setIsApiLoading(false);
-    }
+    await placeBetApi(betAmountNum);
   };
 
   // 2. Process Cashout
@@ -889,47 +904,82 @@ export default function Aviaozinho() {
                   {isApiLoading ? "PROCESSANDO..." : "FAZER APOSTA"}
                 </button>
               )
-            ) : gameStatus === "flying" ? (
-              hasBet && !isCashedOut ? (
-                <button 
-                  onClick={handleCashOut}
-                  disabled={isApiLoading}
-                  className="btn-primary" 
-                  style={{ ...styles.crashActionBtn, background: "linear-gradient(135deg, #81c784 0%, #4caf50 50%, #2e7d32 100%)", color: "white" }}
-                >
-                  {isApiLoading ? "RETIRANDO..." : `CASH OUT (CKB$ ${(activeBetAmount * currentMultiplier).toFixed(0)})`}
-                </button>
-              ) : isCashedOut ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                  <button 
-                    disabled 
-                    className="btn-primary" 
-                    style={{ ...styles.crashActionBtn, background: "rgba(76, 175, 80, 0.1)", border: "1px solid rgba(76, 175, 80, 0.2)", color: "#81c784" }}
-                  >
-                    CASH OUT REALIZADO!
-                  </button>
-                  <span style={{ fontSize: "0.8rem", color: "#81c784", fontWeight: "700", textAlign: "center" }}>
-                    Você faturou **+CKB$ {wonAmount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}**!
-                  </span>
-                </div>
-              ) : (
+            ) : gameStatus === "flying" && hasBet && !isCashedOut ? (
+              <button 
+                onClick={handleCashOut}
+                disabled={isApiLoading}
+                className="btn-primary" 
+                style={{ ...styles.crashActionBtn, background: "linear-gradient(135deg, #81c784 0%, #4caf50 50%, #2e7d32 100%)", color: "white" }}
+              >
+                {isApiLoading ? "RETIRANDO..." : `CASH OUT (CKB$ ${(activeBetAmount * currentMultiplier).toFixed(0)})`}
+              </button>
+            ) : gameStatus === "flying" && isCashedOut ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                 <button 
                   disabled 
                   className="btn-primary" 
-                  style={{ ...styles.crashActionBtn, background: "rgba(255,255,255,0.03)", color: "var(--text-muted)" }}
+                  style={{ ...styles.crashActionBtn, background: "rgba(76, 175, 80, 0.1)", border: "1px solid rgba(76, 175, 80, 0.2)", color: "#81c784" }}
                 >
-                  AGUARDANDO PRÓXIMA RODADA...
+                  CASH OUT REALIZADO!
                 </button>
-              )
-            ) : (
-              // Crashed
+                <span style={{ fontSize: "0.8rem", color: "#81c784", fontWeight: "700", textAlign: "center" }}>
+                  Você faturou **+CKB$ {wonAmount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}**!
+                </span>
+              </div>
+            ) : gameStatus === "crashed" && !isCashedOut && hasBet ? (
+              // Player had a bet, didn't cashout, and it crashed
               <button 
                 disabled 
                 className="btn-primary" 
                 style={{ ...styles.crashActionBtn, background: "rgba(239, 83, 80, 0.05)", border: "1px solid rgba(239, 83, 80, 0.15)", color: "#ef5350" }}
               >
-                O AVIÃO DECOLOU!
+                O AVIÃO DECOLOU! (VOCÊ PERDEU)
               </button>
+            ) : (
+              // General state during flight/crash where they don't have an active live bet, so they can queue one
+              isQueuedBet ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  <button 
+                    onClick={() => setIsQueuedBet(false)}
+                    className="btn-primary" 
+                    style={{ 
+                      ...styles.crashActionBtn, 
+                      background: "linear-gradient(135deg, #f44336 0%, #d32f2f 100%)", 
+                      color: "white" 
+                    }}
+                  >
+                    CANCELAR APOSTA (CKB$ {queuedBetAmount})
+                  </button>
+                  <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textAlign: "center" }}>
+                    Sua aposta entrará automaticamente na próxima rodada.
+                  </span>
+                </div>
+              ) : (
+                <button 
+                  onClick={() => {
+                    const betAmountNum = parseFloat(betInput);
+                    if (isNaN(betAmountNum) || betAmountNum < 10 || betAmountNum > 10000) {
+                      setClaimMessage({ text: "Insira uma aposta entre CKB$ 10 e CKB$ 10.000", type: "error" });
+                      return;
+                    }
+                    if (profile && profile.balance < betAmountNum) {
+                      setClaimMessage({ text: "Saldo insuficiente! Recarregue na lateral.", type: "error" });
+                      return;
+                    }
+                    setClaimMessage(null);
+                    setIsQueuedBet(true);
+                    setQueuedBetAmount(betAmountNum);
+                  }}
+                  className="btn-primary" 
+                  style={{ 
+                    ...styles.crashActionBtn, 
+                    background: "linear-gradient(135deg, #ffd700 0%, #c5a059 100%)", 
+                    color: "#300" 
+                  }}
+                >
+                  APOSTAR NA PRÓXIMA RODADA
+                </button>
+              )
             )}
 
             {/* Error alerts */}
