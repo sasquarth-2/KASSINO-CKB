@@ -359,14 +359,10 @@ export default function DengueGame() {
               <h3 style={{ margin: 0, color: "var(--text-muted)" }}>PREPARANDO PRÓXIMO TURNO...</h3>
             )}
           </div>
-        </section>
 
-        {/* Right Side: Betting controls & payouts */}
-        <section style={styles.sidebarSection}>
-          
-          {/* Betting controls */}
-          <div style={styles.sidebarPanel} className="glass-panel">
-            <h3 className="gold-text" style={{ fontSize: "1.1rem", margin: "0 0 16px 0" }}>Painel de Apostas</h3>
+          {/* Betting controls (moved under Luka) */}
+          <div style={{ width: "100%", maxWidth: "520px", marginTop: "24px", paddingTop: "24px", borderTop: "1px solid rgba(255, 215, 0, 0.15)" }}>
+            <h3 className="gold-text" style={{ fontSize: "1.1rem", margin: "0 0 16px 0", textAlign: "center" }}>Painel de Apostas</h3>
             
             <div style={styles.controlGroup}>
               <span style={styles.controlLabel}>VALOR DA APOSTA</span>
@@ -470,8 +466,10 @@ export default function DengueGame() {
               </div>
             )}
           </div>
+        </section>
 
-          {/* Multiplier Payouts Checklist */}
+        {/* Right Side: Multiplier Payouts Checklist */}
+        <section style={styles.sidebarSection}>
           <div style={styles.sidebarPanel} className="glass-panel">
             <h3 className="gold-text" style={{ fontSize: "1.1rem", margin: "0 0 16px 0" }}>Tabela de Pagamentos</h3>
             <div style={styles.payoutList}>
