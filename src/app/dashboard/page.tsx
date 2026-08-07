@@ -364,7 +364,7 @@ export default function Lobby() {
                 <button 
                   onClick={() => router.push("/dashboard/dengue")}
                   className="btn-primary" 
-                  style={{ width: "100%", marginTop: "auto", background: "linear-gradient(135deg, #4a148c 0%, #311b92 100%)", borderColor: "#6a1b9a" }}
+                  style={{ width: "100%", marginTop: "auto" }}
                 >
                   <Play size={16} fill="currentColor" /> Jogar Blackjack
                 </button>
