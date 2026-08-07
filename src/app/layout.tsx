@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import AntiCheat from "@/components/AntiCheat";
 
 export const metadata: Metadata = {
   title: "Kassino CKB - Fortune Tiger",
@@ -13,7 +14,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body>{children}</body>
+      <body>
+        <AntiCheat />
+        {children}
+      </body>
     </html>
   );
 }
