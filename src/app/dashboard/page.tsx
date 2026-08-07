@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
 import { gameAudio } from "@/lib/audio-manager";
 import { SYMBOLS, BLANK_SYMBOL_ID, WinLine } from "@/lib/slot-engine";
-import { 
-  Volume2, VolumeX, LogOut, Coins, Crown, Flame, 
-  History, Calendar, RotateCcw, AlertCircle, Sparkles, CheckCircle2 
+import {
+  Volume2, VolumeX, LogOut, Coins, Crown, Flame,
+  History, Calendar, RotateCcw, AlertCircle, Sparkles, CheckCircle2
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
@@ -44,7 +44,7 @@ interface SpinResultResponse {
 
 export default function Dashboard() {
   const router = useRouter();
-  
+
   // Auth & Profile state
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -322,6 +322,13 @@ export default function Dashboard() {
 
       const data = await res.json();
 
+      // Pre-set the grid immediately so that as columns stop, they show the new spin results
+      if (data.isFeatureTrigger) {
+        setGrid(data.featureRespins[0]);
+      } else {
+        setGrid(data.grid);
+      }
+
       // Determine animation delays based on Turbo toggle
       const col1Delay = turbo ? 400 : 1000;
       const col2Delay = turbo ? 700 : 1500;
@@ -349,16 +356,15 @@ export default function Dashboard() {
           await runFortuneTigerFeatureSequence(data);
         } else {
           // Standard spin end
-          setGrid(data.grid);
           setSpinning(false);
-          
+
           // Apply new balance from DB
           setProfile(prev => prev ? { ...prev, balance: data.newBalance } : null);
 
           if (data.totalWin > 0) {
             setWinLines(data.winLines);
             setTigerState("win");
-            
+
             if (data.totalMultiplier >= 15 || data.isFullGridWin) {
               triggerBigWinCelebration(data.totalWin, data.totalMultiplier);
             } else {
@@ -417,15 +423,15 @@ export default function Dashboard() {
     // Loop through each respin step sequentially with delays
     for (let i = 1; i < respinSteps.length; i++) {
       await new Promise(resolve => setTimeout(resolve, turbo ? 1000 : 1600));
-      
+
       setFeatureRound(i + 1);
-      
+
       // Simulate brief respin flicker on un-locked (blank) spots
       setSpinning(true);
       gameAudio.playSpin();
-      
+
       await new Promise(resolve => setTimeout(resolve, turbo ? 400 : 800));
-      
+
       setSpinning(false);
       setGrid(respinSteps[i]);
       gameAudio.playStop(1.0 + i * 0.05);
@@ -435,7 +441,7 @@ export default function Dashboard() {
     await new Promise(resolve => setTimeout(resolve, 800));
     setInFeature(false);
     setFeatureSymbol(null);
-    
+
     // Apply final profile balance
     setProfile(prev => prev ? { ...prev, balance: data.newBalance } : null);
 
@@ -545,21 +551,21 @@ export default function Dashboard() {
 
       {/* Main Grid View */}
       <main className="dashboard-grid" style={styles.mainGrid}>
-        
+
         {/* Left Side: Game Area */}
         <section style={styles.gameSection}>
-          
+
           {/* Mascot frame */}
           <div style={styles.mascotArea}>
             <div style={styles.mascotBubble}>
-              {tigerState === "idle" && "Boa sorte! Gire os cilindros e busque a fortuna!"}
+              {tigerState === "idle" && "Boa sorte! Gira aí papai!!"}
               {tigerState === "spin" && "Acelerando! Roda roda roda!"}
               {tigerState === "win" && "INCRÍVEL! VITÓRIA DA FORTUNA!"}
               {tigerState === "roar" && "A FORTUNA DO TIGRE FOI ATIVADA! ROARRR!"}
             </div>
-            
-            <img 
-              src="/images/tiger_mascot.png" 
+
+            <img
+              src="/images/tiger_mascot.png"
               alt="Fortune Tiger Mascot"
               className={`mascot-img floating ${tigerState === "roar" ? "roaring-tiger" : ""}`}
               style={{
@@ -591,13 +597,13 @@ export default function Dashboard() {
               {winLines.length > 0 && (
                 <div style={styles.winOverlay}>
                   {winLines.map((line, idx) => (
-                    <div 
-                      key={idx} 
+                    <div
+                      key={idx}
                       style={{
                         ...styles.winLineDrawing,
                         borderColor: "var(--bright-gold)",
                         boxShadow: "0 0 10px var(--bright-gold)"
-                      }} 
+                      }}
                     />
                   ))}
                 </div>
@@ -623,14 +629,14 @@ export default function Dashboard() {
                           const symId = grid[rowIndex][colIndex];
                           const isBlank = symId === BLANK_SYMBOL_ID;
                           const symbol = SYMBOLS[symId];
-                          
+
                           // Check if cell is part of the feature focus
                           const isFeatureTarget = inFeature && symbol?.id === featureSymbol;
                           const isWildLocked = inFeature && symbol?.id === "tiger_wild";
 
                           return (
-                            <div 
-                              key={rowIndex} 
+                            <div
+                              key={rowIndex}
                               style={{
                                 ...styles.symbolCell,
                                 opacity: inFeature && !isFeatureTarget && !isWildLocked && !isBlank ? 0.35 : 1,
@@ -683,16 +689,16 @@ export default function Dashboard() {
               <div style={styles.controlGroup}>
                 <span style={styles.controlLabel}>APOSTA</span>
                 <div style={styles.betSelector}>
-                  <button 
-                    style={styles.adjustBetBtn} 
-                    onClick={() => setBet(b => Math.max(10, b - 50))} 
+                  <button
+                    style={styles.adjustBetBtn}
+                    onClick={() => setBet(b => Math.max(10, b - 50))}
                     disabled={spinning}
                   >
                     -
                   </button>
-                  <select 
-                    value={bet} 
-                    onChange={(e) => setBet(Number(e.target.value))} 
+                  <select
+                    value={bet}
+                    onChange={(e) => setBet(Number(e.target.value))}
                     style={styles.betSelect}
                     disabled={spinning}
                   >
@@ -700,9 +706,9 @@ export default function Dashboard() {
                       <option key={lvl} value={lvl}>CKB$ {lvl}</option>
                     ))}
                   </select>
-                  <button 
-                    style={styles.adjustBetBtn} 
-                    onClick={() => setBet(b => Math.min(1000, b + 50))} 
+                  <button
+                    style={styles.adjustBetBtn}
+                    onClick={() => setBet(b => Math.min(1000, b + 50))}
                     disabled={spinning}
                   >
                     +
@@ -714,7 +720,7 @@ export default function Dashboard() {
               <div style={styles.controlGroup}>
                 <span style={styles.controlLabel}>CONFIG</span>
                 <div style={styles.configControls}>
-                  <button 
+                  <button
                     style={{
                       ...styles.toggleConfigBtn,
                       background: turbo ? "linear-gradient(135deg, #f44336 0%, #d32f2f 100%)" : "rgba(255,255,255,0.05)",
@@ -726,7 +732,7 @@ export default function Dashboard() {
                     TURBO
                   </button>
 
-                  <button 
+                  <button
                     style={{
                       ...styles.toggleConfigBtn,
                       background: autoSpins > 0 ? "linear-gradient(135deg, #ffd700 0%, #c5a059 100%)" : "rgba(255,255,255,0.05)",
@@ -741,7 +747,7 @@ export default function Dashboard() {
               </div>
 
               {/* SPIN Button */}
-              <button 
+              <button
                 onClick={triggerSpin}
                 disabled={spinning}
                 className="btn-primary"
@@ -762,7 +768,7 @@ export default function Dashboard() {
 
         {/* Right Side: Social Panels (Leaderboard, Big Wins, Claims) */}
         <section style={styles.socialSection}>
-          
+
           {/* Admin Control Panel (Only visible to Super Admins) */}
           {profile?.is_admin && (
             <div style={styles.socialPanel} className="glass-panel">
@@ -857,7 +863,7 @@ export default function Dashboard() {
               <Crown size={18} color="var(--bright-gold)" />
               <h3 style={{ margin: 0, fontSize: "1.1rem" }}>Ranking da Galera</h3>
             </div>
-            
+
             <div style={styles.socialList}>
               {leaderboard.length === 0 ? (
                 <div style={styles.emptyList}>Carregando ranking...</div>
@@ -865,8 +871,8 @@ export default function Dashboard() {
                 leaderboard.map((item, idx) => {
                   const isSelf = profile?.id === item.id;
                   return (
-                    <div 
-                      key={item.id} 
+                    <div
+                      key={item.id}
                       style={{
                         ...styles.leaderboardRow,
                         background: isSelf ? "rgba(255, 215, 0, 0.06)" : "none",
@@ -877,9 +883,9 @@ export default function Dashboard() {
                         {idx === 0 && <Crown size={16} color="var(--bright-gold)" />}
                         {idx > 0 && <span style={{ color: "var(--text-muted)" }}>#{idx + 1}</span>}
                       </div>
-                      <span style={{ 
-                        fontWeight: isSelf ? "700" : "500", 
-                        color: isSelf ? "var(--bright-gold)" : "white" 
+                      <span style={{
+                        fontWeight: isSelf ? "700" : "500",
+                        color: isSelf ? "var(--bright-gold)" : "white"
                       }}>
                         {item.username}
                       </span>
@@ -912,13 +918,13 @@ export default function Dashboard() {
                         Aposta: CKB$ {spin.bet_amount}
                       </span>
                     </div>
-                    
+
                     <div style={{ textAlign: "right" }}>
                       {spin.win_amount > 0 ? (
-                        <span style={{ 
-                          color: "var(--bright-gold)", 
-                          fontWeight: "700", 
-                          fontSize: "0.9rem" 
+                        <span style={{
+                          color: "var(--bright-gold)",
+                          fontWeight: "700",
+                          fontSize: "0.9rem"
                         }}>
                           +CKB$ {spin.win_amount.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} ({spin.multiplier}x)
                         </span>
@@ -942,7 +948,7 @@ export default function Dashboard() {
             <Flame size={64} color="var(--bright-gold)" className="roaring-tiger" />
             <h1 className="gold-text" style={styles.celebrationTitle}>GRANDE GANHO!</h1>
             <p style={styles.celebrationSub}>O TIGRE ABENÇOOU SUA JOGADA</p>
-            
+
             <div style={styles.celebrationBadge}>
               <span style={{ fontSize: "1.2rem", color: "var(--text-muted)" }}>MULTIPLICADOR</span>
               <h2 className="gold-text" style={{ fontSize: "3rem", margin: 0 }}>{celebrationMultiplier}X</h2>
@@ -952,9 +958,9 @@ export default function Dashboard() {
               +CKB$ {formatBalance(celebrationWin)}
             </h2>
 
-            <button 
-              className="btn-primary" 
-              onClick={() => setShowCelebration(false)} 
+            <button
+              className="btn-primary"
+              onClick={() => setShowCelebration(false)}
               style={{ marginTop: "24px", padding: "12px 36px" }}
             >
               COLETAR CKBUCKS
