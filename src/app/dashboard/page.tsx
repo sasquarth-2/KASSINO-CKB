@@ -320,6 +320,31 @@ export default function Lobby() {
                 </button>
               </div>
             </div>
+
+            {/* Game 3: Capitão do Mate */}
+            <div style={{ ...styles.gameCard, background: "linear-gradient(180deg, rgba(12,35,16,0.6) 0%, rgba(5,15,8,0.7) 100%)" }} className="glass-panel">
+              <div style={styles.cardImageArea}>
+                <img 
+                  src="/images/cap-mate.png" 
+                  alt="Capitão do Mate" 
+                  style={styles.cardMateImg}
+                  className="floating"
+                />
+              </div>
+              <div style={styles.cardDetails}>
+                <h3 className="gold-text" style={{ fontSize: "1.5rem", margin: "0 0 8px 0" }}>Capitão do Mate</h3>
+                <p style={styles.cardText}>
+                  Desvire as cartas, encontre os conjuntos de animais selvagens e fuja do Capitão do Mate para acumular multiplicadores de até 50x!
+                </p>
+                <button 
+                  onClick={() => router.push("/dashboard/cap-mate")}
+                  className="btn-primary" 
+                  style={{ width: "100%", marginTop: "auto", background: "linear-gradient(135deg, #1b4d22 0%, #0d2a13 100%)", borderColor: "#2e7d32" }}
+                >
+                  <Play size={16} fill="currentColor" /> JOGAR MATE
+                </button>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -575,6 +600,11 @@ const styles: Record<string, React.CSSProperties> = {
   cardPlaneImg: {
     width: "180px",
     height: "180px",
+    objectFit: "contain",
+  },
+  cardMateImg: {
+    width: "150px",
+    height: "150px",
     objectFit: "contain",
   },
   cardDetails: {
