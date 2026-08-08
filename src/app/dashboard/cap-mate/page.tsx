@@ -667,6 +667,7 @@ const styles: Record<string, React.CSSProperties> = {
   gridSection: {
     display: "flex",
     flexDirection: "column",
+    width: "100%",
   },
   gridContainer: {
     display: "grid",
@@ -675,16 +676,22 @@ const styles: Record<string, React.CSSProperties> = {
     padding: "20px",
     position: "relative",
     aspectRatio: "1",
+    width: "100%",
+    maxWidth: "540px",
+    margin: "0 auto",
     background: "rgba(10, 0, 0, 0.4)",
     border: "1px solid rgba(255, 215, 0, 0.15)",
     borderRadius: "16px",
+    boxSizing: "border-box",
   },
   cardCell: {
+    width: "100%",
     aspectRatio: "1",
     borderRadius: "10px",
     overflow: "hidden",
     position: "relative",
     transition: "all 0.2s ease",
+    boxSizing: "border-box",
   },
   cardBack: {
     position: "absolute",
