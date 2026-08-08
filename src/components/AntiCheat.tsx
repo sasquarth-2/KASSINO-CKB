@@ -71,15 +71,21 @@ export default function AntiCheat() {
     // 3. Infinite Debugger Loop to freeze page if DevTools is opened
     // When DevTools is closed, the debugger has no effect. 
     // When opened, the browser hits the breakpoint loop, pausing the bot/hacker.
+    // Secure: We bypass this on mobile devices to prevent performance degradation/freezing on cellular browsers.
+    const isMobileDevice = /Mobi|Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
+
     const triggerDebugger = () => {
       (function() {
         debugger;
       })();
     };
 
-    const debuggerInterval = setInterval(() => {
-      triggerDebugger();
-    }, 150);
+    let debuggerInterval: NodeJS.Timeout | null = null;
+    if (!isMobileDevice) {
+      debuggerInterval = setInterval(() => {
+        triggerDebugger();
+      }, 150);
+    }
 
     // 4. Overwrite console logging in production to prevent bots from scraping outputs
     const consoleTrap = () => {
@@ -112,7 +118,7 @@ export default function AntiCheat() {
     return () => {
       window.removeEventListener("contextmenu", handleContextMenu);
       window.removeEventListener("keydown", handleKeyDown);
-      clearInterval(debuggerInterval);
+      if (debuggerInterval) clearInterval(debuggerInterval);
       document.removeEventListener("click", handleDocumentClick, true);
     };
   }, []);

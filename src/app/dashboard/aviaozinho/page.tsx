@@ -456,7 +456,7 @@ export default function Aviaozinho() {
       const multVal = parseFloat((1.00 + Math.pow(elapsedSec / 8, 2.2)).toFixed(2));
       setCurrentMultiplier(multVal);
 
-      if (multVal >= crashPoint) {
+      if (hasBet && crashPoint && multVal >= crashPoint) {
         // Plane crashed!
         setGameStatus("crashed");
         gameAudio.playStop(0.85); // crash explosion sound
